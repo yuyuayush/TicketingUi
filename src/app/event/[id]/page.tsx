@@ -3,26 +3,31 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { CalendarDays, MapPin, Ticket, Users } from "lucide-react";
+import { useGetConcertById } from "@/hooks/useConcert";
 import EventCard from "@/components/EventCard";
-
-import JoinQueue from "@/components/JoinQueue";
-import { dummyEvents } from "@/lib/constants";
-import { EventType } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import ArenaSeating from "@/components/AreanSeets";
-
+import JoinQueue from "@/components/JoinQueue";
+import { useAuthStore } from "@/store/useAuth";
 
 export default function EventPage() {
-  // Dummy user simulation
-  const user = null; // Set to null to simulate not signed in
+  const user = null; // not logged in example
   const params = useParams();
-  const eventId = params.id;
+  const concertId = params.id as string;
+  const { isAuthenticated } = useAuthStore()
 
-  // Find event from constant array
-  const event: EventType | undefined = dummyEvents.find((e) => e._id === eventId);
+  const { data: event, isLoading, isError } = useGetConcertById(concertId);
 
-  if (!event) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading event...</p>
+      </div>
+    );
+  }
+
+  if (isError || !event) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Event not found</p>
@@ -30,58 +35,78 @@ export default function EventPage() {
     );
   }
 
-  const isPastEvent = event.eventDate < Date.now();
-  const availableTickets = event.totalTickets - event.purchasedCount;
+  // Convert backend → frontend shape
+  const eventDate = new Date(event.startTime).getTime();
+  const isPastEvent = eventDate < Date.now();
+
+  const image = event.imageUrl || "/fallback.jpg";
+  const location = event.theaterId?.name ?? "Unknown Theater";
+  const city = event.theaterId?.city ?? "";
+  const availableTickets = event.availableTickets ?? event.totalTickets;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           {/* Event Image */}
-          {event.image && (
-            <div className="aspect-[21/9] relative w-full">
-              <Image src={event.image} alt={event.name} fill className="object-cover" />
-            </div>
-          )}
+          <div className="aspect-[21/9] relative w-full">
+            <Image
+              src={image}
+              alt={event.title}
+              fill
+              className="object-cover"
+            />
+          </div>
 
           {/* Event Details */}
           <div className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Left Side */}
+              {/* Left Section */}
               <div className="space-y-8">
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-4">{event.name}</h1>
-                  <p className="text-lg text-gray-600">{event.description}</p>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                    {event.title}
+                  </h1>
+                  <p className="text-lg text-gray-600">
+                    {event.description}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
+                  {/* Date */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <div className="flex items-center text-gray-600 mb-1">
                       <CalendarDays className="w-5 h-5 mr-2 text-pink-500" />
-                      <span className="text-sm font-medium">Date</span>
+                      Date
                     </div>
                     <p className="text-gray-900">
-                      {new Date(event.eventDate).toLocaleDateString()}
+                      {new Date(event.startTime).toLocaleDateString()}
                     </p>
                   </div>
+
+                  {/* Location */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <div className="flex items-center text-gray-600 mb-1">
                       <MapPin className="w-5 h-5 mr-2 text-pink-600" />
-                      <span className="text-sm font-medium">Location</span>
+                      Location
                     </div>
-                    <p className="text-gray-900">{event.location}</p>
+                    <p className="text-gray-900">{location} {city && `• ${city}`}</p>
                   </div>
+
+                  {/* Price */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <div className="flex items-center text-gray-600 mb-1">
                       <Ticket className="w-5 h-5 mr-2 text-pink-600" />
-                      <span className="text-sm font-medium">Price</span>
+                      Price
                     </div>
-                    <p className="text-gray-900">{event.price.toFixed(2)} €</p>
+                    <p className="text-gray-900">₹{event.basePrice}</p>
                   </div>
+
+                  {/* Availability */}
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
                     <div className="flex items-center text-gray-600 mb-1">
                       <Users className="w-5 h-5 mr-2 text-pink-600" />
-                      <span className="text-sm font-medium">Availability</span>
+                      Availability
                     </div>
                     <p className="text-gray-900">
                       {availableTickets} / {event.totalTickets} left
@@ -95,31 +120,34 @@ export default function EventPage() {
                     Event Information
                   </h3>
                   <ul className="space-y-2 text-yellow-700">
-                    <li>• Tickets are non-refundable, unless the event is canceled</li>
-                    <li>• Please arrive 30 minutes before the event starts</li>
-                    <li>• Ensure you bring a valid ID for entry</li>
+                    <li>• Tickets are non-refundable unless the event is canceled</li>
+                    <li>• Please arrive 30 minutes early</li>
+                    <li>• Bring valid ID</li>
                     <li>• Age restriction: 18+</li>
                   </ul>
                 </div>
               </div>
-              <ArenaSeating/>
 
-              {/* Right Side */}
+
+              {/* Right Section */}
               <div>
                 <div className="sticky top-8 space-y-4">
-                  <EventCard event={event} userId={user?.id} />
+                  {/* Reuse EventCard */}
+                  <EventCard event={event} />
 
-                  {/* Dummy Signup / Join Queue */}
-                  {!user ? (
-                    <Link href="/register">
-                      <Button
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                      >
-                        Sign up to buy tickets
+                  {isAuthenticated ? (
+                    <Link href={`${concertId}/seat`}>
+                      <Button className="w-full bg-blue-600 text-white">
+                        Select your seat
                       </Button>
                     </Link>
                   ) : (
-                    <JoinQueue eventId={event._id} userId={user.id} />
+                    <Link href="/register">
+                      <Button className="w-full bg-blue-600 text-white">
+                        Please sign before you select the seat
+                      </Button>
+                    </Link>
+
                   )}
                 </div>
               </div>

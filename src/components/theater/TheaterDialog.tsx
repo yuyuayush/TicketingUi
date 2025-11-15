@@ -2,24 +2,15 @@
 
 import { useState } from "react";
 import { GenericDialog } from "@/components/common/GenericDialog";
+import { ApiDropdown } from "@/components/ui/ApiDropdown"; // Imported reusable dropdown
 import { useGetCities } from "@/hooks/useCity";
 import {
   Input,
   Button,
   Badge,
   Switch,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandItem,
 } from "@/components/ui";
-import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+// Removed unnecessary imports for Popover, Command components, cn, Check, and ChevronsUpDown
 
 export function TheaterDialog({
   open,
@@ -30,8 +21,10 @@ export function TheaterDialog({
   handleSave,
   isPending,
 }: any) {
+  // Fetch city data, now used directly by ApiDropdown
   const { data: cities = [], isLoading } = useGetCities();
-  const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
+
+  // Removed: const [cityPopoverOpen, setCityPopoverOpen] = useState(false);
 
   const handleFacilityChange = (value: string) => {
     setFormData((prev: any) => {
@@ -60,63 +53,18 @@ export function TheaterDialog({
         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
       />
 
-      {/* City Dropdown */}
-      <div className="flex flex-col space-y-1">
-        <label className="text-sm font-medium">City</label>
-        <Popover open={cityPopoverOpen} onOpenChange={setCityPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className={cn(
-                "justify-between w-full",
-                !formData.city && "text-muted-foreground"
-              )}
-            >
-              {formData.city
-                ? cities.find((c: any) => c._id === formData.city)?.name
-                : "Select City"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="p-0 w-full">
-            <Command>
-              <CommandInput placeholder="Search city..." />
-              <CommandList>
-                <CommandEmpty>No cities found.</CommandEmpty>
-                <CommandGroup>
-                  {isLoading ? (
-                    <div className="p-2 text-sm text-muted-foreground">
-                      Loading cities...
-                    </div>
-                  ) : (
-                    cities.map((city: any) => (
-                      <CommandItem
-                        key={city._id}
-                        value={city.name}
-                        onSelect={() => {
-                          setFormData({ ...formData, city: city._id });
-                          setCityPopoverOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            formData.city === city._id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        {city.name} — {city.state}
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
+      {/* City Dropdown - Replaced with ApiDropdown */}
+      <ApiDropdown
+        label="City"
+        placeholder="Select City"
+        value={formData.city}
+        onChange={(val) => setFormData({ ...formData, city: val })}
+        data={cities}
+        isLoading={isLoading}
+        // Use getLabel to combine city name and state as done previously
+        getLabel={(city: any) => `${city.name} — ${city.state}`}
+        getValue={(city: any) => city._id}
+      />
 
       {/* Address */}
       <Input

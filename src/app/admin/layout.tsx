@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building, Film, MapPin, Calendar } from "lucide-react";
+import { Building, Film, MapPin, Calendar, User } from "lucide-react";
 
 const adminLinks = [
   { name: "Dashboard", path: "/admin", icon: <Building size={18} /> },
@@ -10,6 +10,7 @@ const adminLinks = [
   { name: "Theaters", path: "/admin/theater", icon: <Building size={18} /> },
   { name: "Shows", path: "/admin/show", icon: <Calendar size={18} /> },
   { name: "Concerts", path: "/admin/concert", icon: <Film size={18} /> },
+  { name: "Users", path: "/admin/user", icon: <User size={18} /> },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

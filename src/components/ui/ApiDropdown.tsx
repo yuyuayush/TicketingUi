@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import {
   Popover,
   PopoverTrigger,
@@ -11,15 +11,18 @@ import {
   CommandEmpty,
 } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { Loader2, Check } from "lucide-react";
 
 interface ApiDropdownProps {
   label?: string;
   placeholder?: string;
   value?: string;
   onChange: (value: string) => void;
-  fetchFn: () => Promise<any[]>; // Function that returns a list of options
-  getLabel?: (item: any) => string; // how to display item
-  getValue?: (item: any) => string; // how to extract item id
+  data: any[];
+  isLoading: boolean;
+  getLabel?: (item: any) => string;
+  getValue?: (item: any) => string;
+  className?:string;
 }
 
 export const ApiDropdown: React.FC<ApiDropdownProps> = ({
@@ -27,30 +30,34 @@ export const ApiDropdown: React.FC<ApiDropdownProps> = ({
   placeholder = "Select...",
   value,
   onChange,
-  fetchFn,
+  data,
+  isLoading,
   getLabel = (item) => item.name,
   getValue = (item) => item._id,
+  classsName=""
 }) => {
-  const [open, setOpen] = useState(false);
-  const [options, setOptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = React.useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchFn();
-        setOptions(data || []);
-      } catch (err) {
-        console.error("Dropdown fetch failed", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [fetchFn]);
+  const options = data;
+  const loading = isLoading;
 
-  const selectedItem = options.find((o) => getValue(o) === value);
+  const selectedItem = useMemo(
+    () => options.find((o) => getValue(o) === value),
+    [options, value, getValue]
+  );
+
+  const displayLabel = useMemo(() => {
+    if (loading)
+      return (
+        <span className="flex items-center text-muted-foreground">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
+        </span>
+      );
+    if (selectedItem) return getLabel(selectedItem);
+    return placeholder;
+  }, [loading, selectedItem, getLabel, placeholder]);
+
+  const isDisabled = loading || !options.length;
 
   return (
     <div className="space-y-1">
@@ -59,32 +66,41 @@ export const ApiDropdown: React.FC<ApiDropdownProps> = ({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-between"
-            disabled={loading}
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between text-left font-normal border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+            disabled={isDisabled}
           >
-            {loading
-              ? "Loading..."
-              : selectedItem
-              ? getLabel(selectedItem)
-              : placeholder}
+            {displayLabel}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[250px] p-0">
+
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 border border-input rounded-md shadow-md">
           <Command>
-            <CommandInput placeholder={`Search ${label || ""}`} />
+            <CommandInput placeholder={`Search ${label || "items"}...`} />
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
-              {options.map((item) => (
-                <CommandItem
-                  key={getValue(item)}
-                  onSelect={() => {
-                    onChange(getValue(item));
-                    setOpen(false);
-                  }}
-                >
-                  {getLabel(item)}
-                </CommandItem>
-              ))}
+              {options.map((item) => {
+                const itemValue = getValue(item);
+                return (
+                  <CommandItem
+                    key={itemValue}
+                    value={getLabel(item)}
+                    onSelect={() => {
+                      onChange(itemValue);
+                      setOpen(false);
+                    }}
+                    className="hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Check
+                      className={`mr-2 h-4 w-4 ${
+                        value === itemValue ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                    {getLabel(item)}
+                  </CommandItem>
+                );
+              })}
             </CommandList>
           </Command>
         </PopoverContent>

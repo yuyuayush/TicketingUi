@@ -34,7 +34,6 @@ export const useUserLogin = () => {
 
 export const useUserRegister = () => {
   const { toast } = useToast();
-
   return useMutation({
     mutationKey: ["register"],
     mutationFn: authApi.register,
@@ -47,7 +46,7 @@ export const useUserRegister = () => {
     },
     onError: (error) => {
       toast({
-        title: "Registration Failed ❌",
+        title: "Registration Failed ",
         description:
           error?.response?.data?.message ||
           error?.message ||

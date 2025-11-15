@@ -1,11 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input, Badge } from "@/components/ui";
-import { Loader2, Pencil, Trash2, Plus } from "lucide-react";
-import { useGetShows, useCreateShow, useUpdateShow, useDeleteShow } from "@/hooks/useShow";
+import { Button, Badge, Input, Label } from "@/components/ui";
+import { Plus } from "lucide-react";
+import {
+  useGetShows,
+  useCreateShow,
+  useUpdateShow,
+  useDeleteShow,
+} from "@/hooks/useShow";
 import { GenericTable } from "@/components/common/GenericTable";
 import { GenericDialog } from "@/components/common/GenericDialog";
+import { ApiDropdown } from "@/components/ui/ApiDropdown";
+
+// APIs for dropdowns
+import { concertApi, theatersApi } from "@/lib/api";
+import { useGetTheaters } from "@/hooks/useTheater";
 import { ShowFormDialog } from "@/components/show/ShowFormDialog";
 
 export default function ShowAdminPage() {
@@ -16,27 +26,33 @@ export default function ShowAdminPage() {
 
   const [open, setOpen] = useState(false);
   const [editShow, setEditShow] = useState<any>(null);
+
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    movie: "",
+    screen: "",
     theater: "",
-    date: "",
-    time: "",
+    showDate: "",
+    showTime: "",
+    pricing: { gold: "", silver: "", platinum: "" },
+    totalSeats: "",
+    availableSeats: "",
     isActive: true,
   });
 
   // Reset form
   const resetForm = () =>
     setFormData({
-      title: "",
-      description: "",
+      movie: "",
+      screen: "",
       theater: "",
-      date: "",
-      time: "",
+      showDate: "",
+      showTime: "",
+      pricing: { gold: "", silver: "", platinum: "" },
+      totalSeats: "",
+      availableSeats: "",
       isActive: true,
     });
 
-  // Handle open (edit or new)
   const handleAdd = () => {
     setEditShow(null);
     resetForm();
@@ -46,43 +62,67 @@ export default function ShowAdminPage() {
   const handleEdit = (show: any) => {
     setEditShow(show);
     setFormData({
-      title: show.title || "",
-      description: show.description || "",
+      movie: show.movie?._id || "",
+      screen: show.screen?._id || "",
       theater: show.theater?._id || "",
-      date: show.date?.split("T")[0] || "",
-      time: show.time || "",
+      showDate: show.showDate?.split("T")[0] || "",
+      showTime: show.showTime || "",
+      pricing: {
+        gold: show.pricing?.gold || "",
+        silver: show.pricing?.silver || "",
+        platinum: show.pricing?.platinum || "",
+      },
+      totalSeats: show.totalSeats || "",
+      availableSeats: show.availableSeats || "",
       isActive: show.isActive,
     });
     setOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    deleteShow.mutate(id);
-  };
+  const handleDelete = (id: string) => deleteShow.mutate(id);
 
   const handleSave = () => {
     const payload = {
-      title: formData.title,
-      description: formData.description,
+      movie: formData.movie,
+      screen: formData.screen,
       theater: formData.theater,
-      date: formData.date,
-      time: formData.time,
+      showDate: formData.showDate,
+      showTime: formData.showTime,
+      pricing: {
+        gold: Number(formData.pricing.gold),
+        silver: Number(formData.pricing.silver),
+        platinum: Number(formData.pricing.platinum),
+      },
+      totalSeats: Number(formData.totalSeats),
+      availableSeats: Number(formData.availableSeats),
       isActive: formData.isActive,
     };
 
     if (editShow) {
-      updateShow.mutate({ id: editShow._id, data: payload }, { onSuccess: () => setOpen(false) });
+      updateShow.mutate(
+        { id: editShow._id, data: payload },
+        { onSuccess: () => setOpen(false) }
+      );
     } else {
       createShow.mutate(payload, { onSuccess: () => setOpen(false) });
     }
   };
 
-  // Table columns definition (for GenericTable)
+  // Table columns
   const columns = [
-    { key: "title", label: "Title" },
+    { key: "movie.title", label: "Movie" },
     { key: "theater.name", label: "Theater" },
-    { key: "date", label: "Date" },
-    { key: "time", label: "Time" },
+    { key: "screen.name", label: "Screen" },
+    { key: "showDate", label: "Date" },
+    { key: "showTime", label: "Time" },
+    {
+      key: "pricing",
+      label: "Pricing",
+      render: (row: any) =>
+        `G: ₹${row.pricing?.gold} | S: ₹${row.pricing?.silver} | P: ₹${row.pricing?.platinum}`,
+    },
+    { key: "totalSeats", label: "Total Seats" },
+    { key: "availableSeats", label: "Available Seats" },
     {
       key: "isActive",
       label: "Status",
@@ -114,20 +154,38 @@ export default function ShowAdminPage() {
         data={shows}
         columns={columns}
         isLoading={isLoading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
+        emptyMessage="No shows found"
+        actions={(item) => (
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => handleEdit(item)}
+              className="text-blue-600 hover:underline"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => handleDelete(item._id!)}
+              className="text-red-600 hover:underline"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       />
 
-      {/* Dialog */}
-      <ShowFormDialog
-        open={open}
-        setOpen={setOpen}
-        formData={formData}
-        setFormData={setFormData}
-        onSave={handleSave}
-        isPending={createShow.isPending || updateShow.isPending}
-        editShow={!!editShow}
-      />
+
+      {/* Dialog Form */}
+      {open && (
+        <ShowFormDialog
+          open={open}
+          setOpen={setOpen}
+          formData={formData}
+          setFormData={setFormData}
+          onSave={handleSave}
+          isPending={createShow.isPending || updateShow.isPending}
+          editShow={!!editShow}
+        />
+      )}
     </div>
   );
 }

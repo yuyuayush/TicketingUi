@@ -107,13 +107,13 @@ export default function Header() {
                   </div>
 
                   <div className="pt-3 space-y-2">
-                    <Link
+                    {/* <Link
                       href="/profile"
                       onClick={() => setProfileOpen(false)}
                       className="block text-sm text-gray-700 hover:text-pink-600 transition"
                     >
                       View Profile
-                    </Link>
+                    </Link> */}
 
                     <button
                       onClick={handleLogout}
