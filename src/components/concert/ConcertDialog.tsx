@@ -12,9 +12,6 @@ import { Input, Switch, Button } from "@/components/ui";
 import { ConcertDialogProps, IConcertFormData } from "@/lib/types";
 import { Label } from "@/components/ui/label";
 
-// ========================================================
-// 1. Zod Validation Schema
-// ========================================================
 
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -125,7 +122,8 @@ export function ConcertDialog({
         setValue,
         formState: { errors }
     } = useForm<ConcertFormType>({
-        resolver: zodResolver(concertSchema)
+        resolver: zodResolver(concertSchema),
+        defaultValues: initialFormData || {}
     });
 
     const watchedImageFile = watch("image");

@@ -1,115 +1,90 @@
 "use client";
 
-import { useEffect } from "react";
 import Ticket from "@/components/Ticket";
 import Link from "next/link";
 import { ArrowLeft, Download, Share2 } from "lucide-react";
-import { dummyTickets } from "@/lib/constants";
 import { useParams } from "next/navigation";
+import { useGetBookingById } from "@/hooks/useBooking";
 
 export default function TicketPage() {
+  const { id } = useParams();
+  const bookingId = id as string;
 
-    const params = useParams();
-    const ticketId = params.id; // Use "id" if your file is [id].tsx
-    // Find the ticket from dummy data
-    const ticket = dummyTickets.find((t) => t._id === ticketId);
+  const { data: booking, isLoading, error } = useGetBookingById(bookingId);
+  console.log(booking);
 
-    useEffect(() => {
-        if (!ticket) {
-            alert(ticketId)
-            // redirect or show message if ticket not found
-            alert("Ticket not found!");
-            // You can redirect to tickets page if you want
-        }
-    }, [ticket]);
-
-    if (!ticket || !ticket.event) {
-        return <p className="text-center py-12 text-gray-500">Loading ticket...</p>;
-    }
-
-    const isPastEvent = ticket.event.eventDate < Date.now();
-
+  if (isLoading) return <p className="text-center py-10">Loading ticket...</p>;
+  if (error || !booking)
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto space-y-8">
-                {/* Navigation and Actions */}
-                <div className="flex items-center justify-between">
-                    <Link
-                        href="/tickets"
-                        className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to My Tickets
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100">
-                            <Download className="w-4 h-4" />
-                            <span className="text-sm">Save</span>
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100">
-                            <Share2 className="w-4 h-4" />
-                            <span className="text-sm">Share</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Event Info Summary */}
-                <div
-                    className={`bg-white p-6 rounded-lg shadow-sm border ${ticket.event.is_cancelled ? "border-red-200" : "border-gray-100"
-                        }`}
-                >
-                    <h1 className="text-2xl font-bold text-gray-900">{ticket.event.name}</h1>
-                    <p className="mt-1 text-gray-600">
-                        {new Date(ticket.event.eventDate).toLocaleDateString()} at{" "}
-                        {ticket.event.location}
-                    </p>
-                    <div className="mt-4 flex items-center gap-4">
-                        <span
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${ticket.event.is_cancelled
-                                ? "bg-red-50 text-red-700"
-                                : "bg-green-50 text-green-700"
-                                }`}
-                        >
-                            {ticket.event.is_cancelled ? "Cancelled" : "Valid Ticket"}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                            Purchased on {new Date(ticket.purchasedAt).toLocaleDateString()}
-                        </span>
-                    </div>
-                    {ticket.event.is_cancelled && (
-                        <p className="mt-4 text-sm text-red-600">
-                            This event has been cancelled. A refund will be processed if it
-                            hasn&apos;t been already.
-                        </p>
-                    )}
-                </div>
-
-                {/* Ticket Component */}
-                <Ticket ticket={ticket} />
-
-                {/* Additional Information */}
-                <div
-                    className={`mt-8 rounded-lg p-4 ${ticket.event.is_cancelled
-                        ? "bg-red-50 border-red-100 border"
-                        : "bg-blue-50 border-blue-100 border"
-                        }`}
-                >
-                    <h3
-                        className={`text-sm font-medium ${ticket.event.is_cancelled ? "text-red-900" : "text-pink-700"
-                            }`}
-                    >
-                        Need Help?
-                    </h3>
-                    <p
-                        className={`mt-1 text-sm ${ticket.event.is_cancelled ? "text-red-700" : "text-pink-700"
-                            }`}
-                    >
-                        {ticket.event.is_cancelled
-                            ? "For questions about refunds or cancellations, please contact our support team at team@tyxly.com"
-                            : "If you have any issues with your ticket, please contact our support team at team@tixly.com"}
-                    </p>
-                </div>
-            </div>
-        </div>
+      <p className="text-center py-10 text-red-600">Ticket not found!</p>
     );
+
+  const concert = booking.concertId;
+  const user = booking.user;
+
+  const isPastEvent = new Date(concert.endTime) < new Date();
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto space-y-8">
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          <Link href="/tickets" className="flex items-center gap-2 text-gray-600">
+            <ArrowLeft className="w-4 h-4" /> Back to Tickets
+          </Link>
+
+          <div className="flex gap-3">
+            <button className="flex gap-2 items-center hover:bg-gray-200 px-3 py-2 rounded-lg">
+              <Download className="w-4 h-4" /> Save
+            </button>
+            <button className="flex gap-2 items-center hover:bg-gray-200 px-3 py-2 rounded-lg">
+              <Share2 className="w-4 h-4" /> Share
+            </button>
+          </div>
+        </div>
+
+        {/* Booking Summary */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {concert.title}
+          </h1>
+
+          <p className="text-gray-600">
+            {new Date(concert.startTime).toLocaleDateString()} •
+            {new Date(concert.startTime).toLocaleTimeString()}
+          </p>
+
+          <p className="text-sm text-gray-500">
+            Booked by: {user.name} ({user.email})
+          </p>
+
+          <p className="text-sm text-gray-500">
+            Booking ID: {booking.bookingId}
+          </p>
+
+          <p className="text-sm text-gray-500">
+            Purchased on {new Date(booking.createdAt).toLocaleDateString()}
+          </p>
+
+          <span className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-medium ${
+            isPastEvent ? "bg-gray-200 text-gray-700" : "bg-green-100 text-green-700"
+          }`}>
+            {isPastEvent ? "Event Ended" : "Valid Ticket"}
+          </span>
+        </div>
+
+        {/* Ticket Design */}
+        <Ticket ticket={booking} />
+
+        {/* Footer Help */}
+        <div className="bg-blue-50 border-blue-200 border p-4 rounded-lg">
+          <p className="text-blue-800 text-sm">
+            Need help? Contact support@tixly.com
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
 }

@@ -9,7 +9,6 @@ import { ISeatCreatePayload, ISeatLockPayload, ISeatUnlockPayload } from "@/lib/
 // Reusable query key
 const SEAT_QUERY_KEY = ["seats"];
 
-// --- Get all seats for a concert
 export const useGetSeatsByConcert = (concertId?: string) => {
   return useQuery({
     queryKey: [...SEAT_QUERY_KEY, concertId],

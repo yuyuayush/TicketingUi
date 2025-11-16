@@ -1,94 +1,117 @@
 "use client";
 
-import TicketCard from "@/components/TicketCard";
-import { dummyTickets } from "@/lib/constants";
-import { Ticket } from "lucide-react";
+import { CalendarDays, MapPin, ArrowRight, Clock } from "lucide-react";
+import { useGetUserBookings } from "@/hooks/useBooking";
+import Loading from "../loading";
+import Link from "next/link";
 
 export default function MyTicketsPage() {
-  const tickets = dummyTickets;
+  const { data: tickets = [], isLoading, error } = useGetUserBookings();
 
-  const validTickets = tickets.filter((t) => t.status === "valid");
-  const otherTickets = tickets.filter((t) => t.status !== "valid");
+  if (isLoading) return <Loading />;
+  if (error)
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-red-600 font-semibold">Something went wrong...</h1>
+      </div>
+    );
 
-  const upcomingTickets = validTickets.filter(
-    (t) => t.event && t.event.eventDate > Date.now()
-  );
-  const pastTickets = validTickets.filter(
-    (t) => t.event && t.event.eventDate <= Date.now()
-  );
+  const confirmed = tickets.filter((t) => t.status === "CONFIRMED");
+
+  const upcoming = confirmed.filter((t) => {
+    const date = t.concertId?.startTime ? new Date(t.concertId.startTime) : null;
+    return date && date > new Date();
+  });
+
+  const past = confirmed.filter((t) => {
+    const date = t.concertId?.startTime ? new Date(t.concertId.startTime) : null;
+    return date && date <= new Date();
+  });
+
+  const isEmpty = confirmed.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Tickets</h1>
-            <p className="mt-2 text-gray-600">
-              Manage and view all your tickets in one place
-            </p>
-          </div>
-          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Ticket className="w-5 h-5" />
-              <span className="font-medium">{tickets.length} Total Tickets</span>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">My Tickets</h1>
         </div>
 
-        {/* Upcoming Tickets */}
-        {upcomingTickets.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Upcoming Events
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingTickets.map((ticket) => (
-                <TicketCard key={ticket._id} ticket={ticket} />
-              ))}
-            </div>
-          </div>
-        )}
+        {upcoming.length > 0 && <Section title="Upcoming Events" data={upcoming} />}
+        {past.length > 0 && <Section title="Past Events" data={past} />}
 
-        {/* Past Tickets */}
-        {pastTickets.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Past Events
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastTickets.map((ticket) => (
-                <TicketCard key={ticket._id} ticket={ticket} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Other Tickets */}
-        {otherTickets.length > 0 && (
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Other Tickets
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {otherTickets.map((ticket) => (
-                <TicketCard key={ticket._id} ticket={ticket} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* No Tickets */}
-        {tickets.length === 0 && (
-          <div className="text-center py-12">
-            <Ticket className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900">No tickets yet</h3>
-            <p className="text-gray-600 mt-1">
-              When you purchase tickets, they'll appear here
-            </p>
+        {isEmpty && (
+          <div className="text-center py-20 text-gray-500">
+            <p>No tickets available yet</p>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function Section({ title, data }) {
+  return (
+    <section className="mb-12">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">{title}</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {data.map((ticket) => (
+          <TicketCard key={ticket._id} ticket={ticket} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** 🎟️ WORKING TICKET CARD BASED ON YOUR EXACT DB */
+function TicketCard({ ticket }) {
+  const concert = ticket.concertId;
+  const startDate = concert?.startTime ? new Date(concert.startTime) : null;
+  const isPast = startDate && startDate < new Date();
+
+  return (
+    <Link
+      href={`/tickets/${ticket._id}`}
+      className="block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
+    >
+      <img
+        src={concert?.imageUrl}
+        alt={concert?.title}
+        className="w-full h-40 object-cover rounded-t-lg"
+      />
+
+      <div className="p-4 space-y-3">
+        <h3 className="text-lg font-semibold">{concert?.title}</h3>
+        <p className="text-sm text-gray-600">By {concert?.artist}</p>
+
+        {/* Event Date */}
+        {startDate && (
+          <div className="flex items-center text-gray-600 text-sm">
+            <CalendarDays className="w-4 h-4 mr-2" />
+            {startDate.toLocaleDateString()}
+          </div>
+        )}
+
+        {/* Past Label */}
+        {isPast && (
+          <p className="text-xs text-gray-500 flex items-center gap-1">
+            <Clock className="w-3 h-3" /> Past Event
+          </p>
+        )}
+
+        {/* Price + Button */}
+        <div className="flex items-center justify-between pt-3 border-t text-sm">
+          <span className="text-pink-600 font-medium">
+            ₹{concert.basePrice / 100}
+          </span>
+
+          <span className="flex items-center text-gray-600">
+            View Ticket
+            <ArrowRight className="w-4 h-4 ml-1" />
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }

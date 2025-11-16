@@ -1,36 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
 import { Button } from "@/components/ui/button";
 import Ticket from "@/components/Ticket";
-
-
-// Dummy ticket data
-const dummyTickets = [
-  {
-    _id: "ticket_123",
-    eventName: "AI Conference 2025",
-    holderName: "John Doe",
-    seat: "A12",
-    date: new Date().toISOString(),
-  },
-];
+import { useGetUserLatestBookings } from "@/hooks/useBooking";
+import Loading from "@/app/loading";
 
 export default function TicketSuccess() {
-  const [latestTicket, setLatestTicket] = useState(dummyTickets[dummyTickets.length - 1]);
+  const { data: latestTicket, isLoading, error } = useGetUserLatestBookings();
 
-  // Optional: simulate loading
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
 
-  if (loading) {
+  if ( isLoading) {
+    return (
+      <Loading/>
+    );
+  }
+
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading ticket...</p>
+        <p className="text-red-500">Error loading ticket.</p>
       </div>
     );
   }
@@ -42,6 +31,11 @@ export default function TicketSuccess() {
       </div>
     );
   }
+
+  const { concertId: concert, user, seats, theaterId: theater, finalAmount, qrCode, bookingId, createdAt, status } = latestTicket;
+
+  const seatDetails =
+    seats?.map((s) => `R${s.row}-S${s.column} (${s.seatType})`).join(", ") || "General Admission";
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -55,10 +49,22 @@ export default function TicketSuccess() {
           </p>
         </div>
 
-        {/* Render the ticket component */}
-        <Ticket ticketId={latestTicket._id} />
-
-        {/* Optional: Button to go back to events */}
+        {/* Ticket Card */}
+        <Ticket
+          ticket={{
+            bookingId,
+            concertId: concert,
+            seats,
+            user,
+            theaterId: theater,
+            status,
+            createdAt,
+            finalAmount,
+            qrCode,
+          }}
+        />
+     
+        {/* Back to Events Button */}
         <div className="mt-6 text-center">
           <Button
             onClick={() => window.location.href = "/events"}

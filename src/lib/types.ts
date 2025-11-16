@@ -102,6 +102,23 @@ export interface ConcertTableProps {
 }
 
 
+export interface IBooking {
+  _id: string;
+  concertId: string;
+  seats: string[];
+  status: "confirmed" | "cancelled";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
+
+
 export interface IConcertFormData {
   id?: string;
   title: string;

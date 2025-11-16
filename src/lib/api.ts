@@ -1,4 +1,4 @@
-import { ApiStripeResponse, IAdminUpdateUserData, IConcertData, IGetAllUsersParams, IPaymentInitiatePayload, IPaymentRefundPayload, IPaymentVerifyPayload, IResetPasswordData, ISeat, ISeatCreatePayload, ISeatLockPayload, ISeatUnlockPayload, IStripePaymentInitiatePayload, IUpdatePasswordData, IUpdateProfileData, IUser, User } from "./types";
+import { ApiStripeResponse, IAdminUpdateUserData, IBooking, IConcertData, IGetAllUsersParams, IPaymentInitiatePayload, IPaymentRefundPayload, IPaymentVerifyPayload, IResetPasswordData, ISeat, ISeatCreatePayload, ISeatLockPayload, ISeatUnlockPayload, IStripePaymentInitiatePayload, IUpdatePasswordData, IUpdateProfileData, IUser, User } from "./types";
 
 // API service layer for connecting frontend to backend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
@@ -583,6 +583,34 @@ export const seatApi = {
         });
     },
 };
+
+
+
+
+export const bookingApi = {
+    // Get all bookings of the logged-in user
+    async getUserBookings(): Promise<ApiResponse<IBooking[]>> {
+        return await apiRequest<ApiResponse<IBooking[]>>(`/bookings`);
+    },
+    async getUserLatestBookings(): Promise<ApiResponse<IBooking>> {
+        return await apiRequest<ApiResponse<IBooking>>(`/bookings/lastest`);
+    },
+
+    // Get booking details by ID
+    async getBookingById(bookingId: string): Promise<ApiResponse<IBooking>> {
+        return await apiRequest<ApiResponse<IBooking>>(`/bookings/${bookingId}`);
+    },
+
+    // Cancel a booking by ID
+    async cancelBooking(bookingId: string): Promise<ApiResponse> {
+        return await apiRequest<ApiResponse>(`/bookings/${bookingId}/cancel`, {
+            method: "POST",
+        });
+    },
+};
+
+
+
 
 // export const paymentApi = {
 //     // Initiate payment

@@ -3,8 +3,11 @@
 import { SeatTimer } from "@/components/seat/SeatTimer";
 import { Button } from "@/components/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { useInitiateStripePayment } from "@/hooks/usePayment";
 import { BookingPanelProps } from "@/lib/types";
+import { useAuthStore } from "@/store/useAuth";
+import { useUserStore } from "@/store/useUserAdminStore";
 import { Separator } from "@radix-ui/react-separator";
 
 
@@ -16,6 +19,10 @@ const BookingPanel: React.FC<BookingPanelProps> = ({
   handleLockSeats,
   handleUnlockSeats,
 }) => {
+
+  const { currentUser } = useAuthStore();
+  console.log(currentUser);
+
   const { mutateAsync: stripePayment, isLoading } = useInitiateStripePayment();
 
   const handleConfirmPayment = () => {
@@ -28,11 +35,13 @@ const BookingPanel: React.FC<BookingPanelProps> = ({
       productName: `Tickets: ${selectedSeats.map((s) => s.seatNumber).join(", ")}`,
       concertId: selectedSeats[0].concertId,
       seatIds: selectedSeats.map((s) => s._id),
-      userId: "your_user_id_here",
+      userId: currentUser?.id,
+      email: currentUser?.email
     };
 
     stripePayment(payload);
   };
+
 
   return (
     <Card className="w-96 p-4">
