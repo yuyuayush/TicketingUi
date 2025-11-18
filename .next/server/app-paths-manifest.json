@@ -1,3 +1,19 @@
 {
-  "/page": "app/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/event/[id]/page": "app/event/[id]/page.js",
+  "/register/page": "app/register/page.js",
+  "/success/page": "app/success/page.js",
+  "/event/[id]/seat/page": "app/event/[id]/seat/page.js",
+  "/tickets/page": "app/tickets/page.js",
+  "/tickets/purchase-success/page": "app/tickets/purchase-success/page.js",
+  "/tickets/[id]/page": "app/tickets/[id]/page.js",
+  "/admin/movie/page": "app/admin/movie/page.js",
+  "/admin/concert/page": "app/admin/concert/page.js",
+  "/admin/city/page": "app/admin/city/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/show/page": "app/admin/show/page.js",
+  "/admin/theater/page": "app/admin/theater/page.js",
+  "/admin/user/page": "app/admin/user/page.js"
 }
