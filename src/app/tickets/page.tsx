@@ -4,6 +4,7 @@ import { CalendarDays, MapPin, ArrowRight, Clock } from "lucide-react";
 import { useGetUserBookings } from "@/hooks/useBooking";
 import Loading from "../loading";
 import Link from "next/link";
+import { getConcertImageUrl } from "@/lib/imageUtils";
 
 export default function MyTicketsPage() {
   const { data: tickets = [], isLoading, error } = useGetUserBookings();
@@ -76,7 +77,7 @@ function TicketCard({ ticket }) {
       className="block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
     >
       <img
-        src={concert?.imageUrl}
+        src={getConcertImageUrl(concert)}
         alt={concert?.title}
         className="w-full h-40 object-cover rounded-t-lg"
       />

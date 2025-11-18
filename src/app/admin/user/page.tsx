@@ -9,6 +9,7 @@ import { useDeleteUser, useGetAllUsers, useUpdateUserByAdmin } from "@/hooks/use
 import { UserDialog } from "@/components/AdminUser/UserDialog";
 import { UserTable } from "@/components/AdminUser/UserTable";
 import { useUserStore } from "@/store/useUserAdminStore";
+import Loading from "@/app/loading";
 
 export default function UserAdminPage() {
     const [params, setParams] = useState<IGetAllUsersParams>({ page: 1, limit: 10, search: "" });
@@ -64,6 +65,10 @@ export default function UserAdminPage() {
     };
 
     const isPending = updateUserMutation.isPending || deleteUserMutation.isPending;
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     return (
         <div className="p-6 space-y-6">

@@ -58,7 +58,7 @@ export const concertSchema = z
                 (file) => {
                     if (!file) return true; // No file → OK
                     if (!(file instanceof File)) return false;
-                    return file.size >= MAX_FILE_SIZE;
+                    return file.size <= MAX_FILE_SIZE; // Fixed: should be <= not >=
                 },
                 { message: "Max file size is 5MB." }
             ),

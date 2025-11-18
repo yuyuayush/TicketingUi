@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { useGetCities } from "@/hooks/useCity";
 import { TheaterDialog } from "@/components/theater/TheaterDialog";
 import { TheaterTable } from "@/components/theater/TheaterTable";
+import Loading from "@/app/loading";
 
 // ========================================================
 //  Main Component
@@ -119,6 +120,10 @@ export default function TheaterAdminPage() {
       });
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="p-6 space-y-6">

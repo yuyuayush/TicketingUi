@@ -28,6 +28,7 @@ import {
   useDeleteCity,
 } from "@/hooks/useCity";
 import { useToast } from "@/hooks/use-toast";
+import Loading from "@/app/loading";
 
 export default function CityAdminPage() {
   const { toast } = useToast();
@@ -96,6 +97,10 @@ export default function CityAdminPage() {
     setFormData({ name: "", state: "", country: "India" });
     setDialogOpen(true);
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="space-y-6">

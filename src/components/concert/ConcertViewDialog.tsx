@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Music, DollarSign, Info } from "lucide-react";
 import { IConcertDisplay } from "@/lib/types";
+import { getConcertImageUrl } from "@/lib/imageUtils";
 
 interface ConcertViewDialogProps {
   open: boolean;
@@ -20,10 +21,7 @@ interface ConcertViewDialogProps {
 export function ConcertViewDialog({ open, setOpen, concert }: ConcertViewDialogProps) {
   if (!concert) return null;
 
-  const image =
-    concert.image ||
-    concert.imageUrl ||
-    "https://via.placeholder.com/800x400?text=No+Image";
+  const image = getConcertImageUrl(concert);
 
   const theaterName =
     typeof concert.theaterId === "object"

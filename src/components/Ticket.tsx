@@ -2,9 +2,13 @@
 
 import { CalendarDays, IdCard, MapPin, Ticket as TicketIcon, User } from "lucide-react";
 import Image from "next/image";
+import { getConcertImageUrl } from "@/lib/imageUtils";
 
 export default function Ticket({ ticket }: { ticket: any }) {
   if (!ticket) {
+
+
+    
     return (
       <div className="min-h-[200px] flex items-center justify-center">
         <p className="text-gray-500">Ticket data not found</p>
@@ -28,7 +32,7 @@ export default function Ticket({ ticket }: { ticket: any }) {
       ? "Used Ticket"
       : "Valid Ticket";
 
-  const poster = `${concert?.imageUrl}`;
+  const poster = getConcertImageUrl(concert);
 
   return (
     <div className={`bg-white rounded-xl overflow-hidden shadow-lg border ${isCancelled ? "border-red-300" : "border-gray-200"}`}>

@@ -47,58 +47,41 @@ const removeToken = (): void => {
 };
 
 // Base API request function
-const apiRequest = async <T = any>(endpoint: string, options: RequestInit & { headers?: Record<string, string> } = {}): Promise<T> => {
+const apiRequest = async <T = any>(
+    endpoint: string,
+    options: RequestInit & { responseType?: "json" | "blob" } = {}
+): Promise<T> => {
+
     const url = `${API_BASE_URL}${endpoint}`;
     const token = getToken();
 
     const config: RequestInit = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        },
         ...options,
+        headers: {
+            ...options.headers,
+            // Only set JSON header if not blob
+            ...(options.responseType !== "blob" && {
+                "Content-Type": "application/json",
+            }),
+            ...(token && { Authorization: `Bearer ${token}` }),
+        }
     };
 
-    // Add authentication header if token exists
-    if (token) {
-        (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+        let errData = null;
+        try { errData = await response.json(); } catch { }
+        throw new ApiError(errData?.message || "Request failed", response.status, errData);
     }
 
-    try {
-        const response = await fetch(url, config);
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (e) {
-            data = null;
-        }
-
-        if (!response.ok) {
-            // Handle 401 Unauthorized specifically
-            if (response.status === 401) {
-                // Token might be expired, remove it
-                removeToken();
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('aiq-user');
-                }
-            }
-
-            throw new ApiError(
-                data?.message || `HTTP error! status: ${response.status}`,
-                response.status,
-                data
-            );
-        }
-
-        return data;
-    } catch (error) {
-        if (error instanceof ApiError) {
-            throw error;
-        }
-        throw new ApiError('Network error occurred', 0);
+    if (options.responseType === "blob") {
+        return response.blob() as Promise<any>;
     }
+
+    return response.json();
 };
+
 
 // Auth API
 export const authApi = {
@@ -594,6 +577,12 @@ export const bookingApi = {
     },
     async getUserLatestBookings(): Promise<ApiResponse<IBooking>> {
         return await apiRequest<ApiResponse<IBooking>>(`/bookings/lastest`);
+    },
+    async getBookingByIdDownload(bookingId: string): Promise<ApiResponse> {
+        return await apiRequest<ApiResponse>(`/bookings/download/${bookingId}`, {
+            method: "POST",
+            responseType: "blob",
+        });
     },
 
     // Get booking details by ID

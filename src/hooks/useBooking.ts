@@ -36,6 +36,18 @@ export const useGetBookingById = (bookingId?: string) => {
   });
 };
 
+export const usePostBookingByIdDownload = () => {
+
+  return useMutation({
+    mutationFn: (bookingId: string) =>
+      bookingApi.getBookingByIdDownload(bookingId),
+    onSuccess: (res) => {
+      console.log("Booking Download Data:");
+    },
+  });
+};
+
+
 export const useCancelBooking = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();

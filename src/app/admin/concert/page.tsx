@@ -9,6 +9,7 @@ import { ConcertTable } from "@/components/concert/ConcertTable";
 import { ConcertViewDialog } from "@/components/concert/ConcertViewDialog";
 import { useConcertAdminStore } from "@/store/useConcertStore";
 import ConcertForm from "@/components/concert/ConcertForm";
+import Loading from "@/app/loading";
 
 
 export default function ConcertAdminPage() {
@@ -46,10 +47,13 @@ export default function ConcertAdminPage() {
             return;
         }
 
+        // Check if image file is provided
+        const hasImageFile = formData.image instanceof File;
+
+        // Prepare base payload
         const payload: any = {
             title: formData.title,
             artist: formData.artist,
-            imageUrl: formData.imageUrl,
             genre: formData.genre || "",
             theaterId: formData.theaterId,
             basePrice: formData.basePrice ?? 0,
@@ -60,13 +64,29 @@ export default function ConcertAdminPage() {
             endTime: new Date(formData.endTime).toISOString(),
         };
 
+        // Only include imageUrl if no file is uploaded
+        if (!hasImageFile && formData.imageUrl) {
+            payload.imageUrl = formData.imageUrl;
+        }
+
         let finalPayload: any = payload;
 
-        if (formData.image instanceof File) {
+        // If image file exists, use FormData
+        if (hasImageFile) {
             const formDataPayload = new FormData();
+            
+            // Append all text fields
             Object.entries(payload).forEach(([key, value]) => {
-                formDataPayload.append(key, String(value ?? ""));
+                if (value !== null && value !== undefined) {
+                    if (typeof value === 'boolean') {
+                        formDataPayload.append(key, value.toString());
+                    } else {
+                        formDataPayload.append(key, String(value));
+                    }
+                }
             });
+            
+            // Append image file with correct field name
             formDataPayload.append("image", formData.image);
             finalPayload = formDataPayload;
         }
@@ -79,6 +99,10 @@ export default function ConcertAdminPage() {
     };
 
     const isPending = createConcert.isPending || updateConcert.isPending;
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     return (
         <div className="p-6 space-y-6">

@@ -9,11 +9,11 @@ import { ISeatCreatePayload, ISeatLockPayload, ISeatUnlockPayload } from "@/lib/
 // Reusable query key
 const SEAT_QUERY_KEY = ["seats"];
 
-export const useGetSeatsByConcert = (concertId?: string) => {
+export const useGetSeatsByConcert = (concertId?: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: [...SEAT_QUERY_KEY, concertId],
     queryFn: () => seatApi.getSeatsByConcert(concertId!),
-    enabled: !!concertId,
+    enabled: options?.enabled !== undefined ? (!!concertId && options.enabled) : !!concertId,
     select: (res) => res.data || [],
     staleTime: 5 * 60 * 1000,
   });

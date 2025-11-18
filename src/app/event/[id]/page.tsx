@@ -10,6 +10,8 @@ import Link from "next/link";
 import ArenaSeating from "@/components/AreanSeets";
 import JoinQueue from "@/components/JoinQueue";
 import { useAuthStore } from "@/store/useAuth";
+import Loading from "@/app/loading";
+import { getConcertImageUrl } from "@/lib/imageUtils";
 
 export default function EventPage() {
   const user = null; // not logged in example
@@ -20,11 +22,7 @@ export default function EventPage() {
   const { data: event, isLoading, isError } = useGetConcertById(concertId);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading event...</p>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (isError || !event) {
@@ -39,7 +37,7 @@ export default function EventPage() {
   const eventDate = new Date(event.startTime).getTime();
   const isPastEvent = eventDate < Date.now();
 
-  const image = event.imageUrl || "/fallback.jpg";
+  const image = getConcertImageUrl(event, "/fallback.jpg");
   const location = event.theaterId?.name ?? "Unknown Theater";
   const city = event.theaterId?.city ?? "";
   const availableTickets = event.availableTickets ?? event.totalTickets;

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { CalendarDays, MapPin, Ticket } from "lucide-react";
 import { IConcertFormData } from "@/lib/types";
+import { getConcertImageUrl } from "@/lib/imageUtils";
 
 interface EventCardProps {
   event: IConcertFormData;
@@ -26,7 +27,7 @@ export default function EventCard({ event }: EventCardProps) {
   const location = theater?.name ?? "Unknown Theater";
   const city = theater?.city ?? "";
 
-  const image = event.imageUrl || "/fallback.jpg";
+  const image = getConcertImageUrl(event, "/fallback.jpg");
 
   const availableTickets = event?.availableTickets ?? event.totalTickets ?? 0;
 

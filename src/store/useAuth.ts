@@ -27,11 +27,17 @@ export const useAuthStore = create<AuthState>()(
         }),
     }),
     {
-      name: "auth-storage", // key name in localStorage
+      name: "auth-storage",
       partialize: (state) => ({
         currentUser: state.currentUser,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Set initialized to true after rehydration
+        if (state) {
+          state.setInitialized(true);
+        }
+      },
     }
   )
 );

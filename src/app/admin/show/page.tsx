@@ -17,6 +17,7 @@ import { ApiDropdown } from "@/components/ui/ApiDropdown";
 import { concertApi, theatersApi } from "@/lib/api";
 import { useGetTheaters } from "@/hooks/useTheater";
 import { ShowFormDialog } from "@/components/show/ShowFormDialog";
+import Loading from "@/app/loading";
 
 export default function ShowAdminPage() {
   const { data: shows = [], isLoading } = useGetShows();
@@ -138,6 +139,10 @@ export default function ShowAdminPage() {
         ),
     },
   ];
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="space-y-6">

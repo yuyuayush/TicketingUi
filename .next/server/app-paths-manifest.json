@@ -1,8 +1,1 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/tickets/purchase-success/page": "app/tickets/purchase-success/page.js",
-  "/event/[id]/page": "app/event/[id]/page.js",
-  "/tickets/page": "app/tickets/page.js",
-  "/event/[id]/seat/page": "app/event/[id]/seat/page.js",
-  "/tickets/[id]/page": "app/tickets/[id]/page.js"
-}
+{}

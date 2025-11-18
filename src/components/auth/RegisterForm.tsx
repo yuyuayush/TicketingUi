@@ -45,15 +45,13 @@ export function RegisterForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const res = await registerMutation({ name: values.name, email: values.email, password: values.password });
-      if (res.success) {
-        toast({
-          title: "Registration Successful",
-          description:
-            "Welcome to AIQ Learning! Redirecting you to your dashboard.",
-        });
-        router.push("/");
-        router.refresh();
-      }
+      router.push("/");
+      localStorage.setItem("ticketing-user", JSON.stringify(response.user));
+      toast({
+        title: "Registration Successful",
+        description:
+          "Welcome to AIQ Learning! Redirecting you to your dashboard.",
+      });
     } catch (error) {
       toast({
         variant: "destructive",

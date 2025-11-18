@@ -47,7 +47,8 @@ export const useConcertAdminStore = create<ConcertAdminStoreState>((set, get) =>
                 totalTickets: (concert as any).totalTickets ?? 0,
                 description: concert.description || "",
                 isPublished: concert.isPublished ?? false,
-                imageUrl: (concert as any).imageUrl || "",
+                // Use Cloudinary image URL if available, otherwise fallback to imageUrl
+                imageUrl: (concert as any).images?.[0]?.url || (concert as any).imageUrl || "",
                 image: null, // Always reset the File input when opening the dialog
             };
 

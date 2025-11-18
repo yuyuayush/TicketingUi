@@ -4,16 +4,51 @@ import Ticket from "@/components/Ticket";
 import Link from "next/link";
 import { ArrowLeft, Download, Share2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useGetBookingById } from "@/hooks/useBooking";
+import { useGetBookingById, usePostBookingByIdDownload } from "@/hooks/useBooking";
+import { useToast } from "@/hooks/use-toast";
+import Loading from "@/app/loading";
 
 export default function TicketPage() {
   const { id } = useParams();
   const bookingId = id as string;
 
   const { data: booking, isLoading, error } = useGetBookingById(bookingId);
-  console.log(booking);
 
-  if (isLoading) return <p className="text-center py-10">Loading ticket...</p>;
+  const {toast} = useToast();
+
+  const { mutateAsync: downloadBooking } = usePostBookingByIdDownload();
+
+
+ const download = async () => {
+  try {
+    const blob = await downloadBooking(bookingId);
+
+    // The API returns the blob directly, not wrapped in a data property
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Booking-${bookingId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Download Successful",
+      description: "Your ticket has been downloaded!",
+    });
+
+  } catch (err) {
+    toast({
+      title: "Download Failed",
+      variant: "destructive",
+      description: "Unable to download PDF right now.",
+    });
+  }
+};
+
+
+  if (isLoading) return <Loading />;
   if (error || !booking)
     return (
       <p className="text-center py-10 text-red-600">Ticket not found!</p>
@@ -35,7 +70,9 @@ export default function TicketPage() {
           </Link>
 
           <div className="flex gap-3">
-            <button className="flex gap-2 items-center hover:bg-gray-200 px-3 py-2 rounded-lg">
+            <button
+              onClick={download}
+              className="flex gap-2 items-center hover:bg-gray-200 px-3 py-2 rounded-lg">
               <Download className="w-4 h-4" /> Save
             </button>
             <button className="flex gap-2 items-center hover:bg-gray-200 px-3 py-2 rounded-lg">
@@ -67,9 +104,8 @@ export default function TicketPage() {
             Purchased on {new Date(booking.createdAt).toLocaleDateString()}
           </p>
 
-          <span className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-medium ${
-            isPastEvent ? "bg-gray-200 text-gray-700" : "bg-green-100 text-green-700"
-          }`}>
+          <span className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-medium ${isPastEvent ? "bg-gray-200 text-gray-700" : "bg-green-100 text-green-700"
+            }`}>
             {isPastEvent ? "Event Ended" : "Valid Ticket"}
           </span>
         </div>

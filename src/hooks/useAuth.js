@@ -4,11 +4,15 @@ import { authApi } from "@/lib/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "./use-toast";
 import { useAuthStore } from "@/store/useAuth";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
 
 const { setUser, currentUser } = useAuthStore.getState();
 
 export const useUserLogin = () => {
+  const router = useRouter();
   const { toast } = useToast();
+
   return useMutation({
     mutationKey: ["login"],
     mutationFn: authApi.login,
@@ -18,7 +22,8 @@ export const useUserLogin = () => {
         title: "Login Successful 🎉",
         description: "You are now logged in.",
       });
-      
+      localStorage.setItem("ticketing-user", JSON.stringify(response.user));
+      router.push("/");
     },
     onError: (error) => {
       toast({
@@ -33,12 +38,14 @@ export const useUserLogin = () => {
 };
 
 export const useUserRegister = () => {
+  const router = useRouter();
   const { toast } = useToast();
+
   return useMutation({
     mutationKey: ["register"],
     mutationFn: authApi.register,
     onSuccess: (res) => {
-       setUser(res.data?.user);
+      setUser(res.data?.user);
       toast({
         title: "Registration Successful 🎊",
         description: "Welcome aboard! Your account has been created.",
@@ -46,7 +53,7 @@ export const useUserRegister = () => {
     },
     onError: (error) => {
       toast({
-        title: "Registration Failed ",
+        title: "Registration Failed ❌",
         description:
           error?.response?.data?.message ||
           error?.message ||

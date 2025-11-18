@@ -20,7 +20,7 @@ interface SeatState {
   setSelectedSeats: (seats: Seat[]) => void;
   setTotalAmount: (amount: number) => void;
   setLocked: (locked: boolean) => void;
-  setTimer: (time: number) => void;
+  setTimer: (time: number | ((prev: number) => number)) => void;
   toggleSeat: (seat: Seat) => void;
   resetSeats: () => void;
 }
@@ -34,7 +34,10 @@ export const useSeatStore = create<SeatState>((set, get) => ({
   setSelectedSeats: (seats: Seat[]) => set({ selectedSeats: seats }),
   setTotalAmount: (amount: number) => set({ totalAmount: amount }),
   setLocked: (locked: boolean) => set({ locked }),
-  setTimer: (time: number) => set({ timer: time }),
+  setTimer: (time: number | ((prev: number) => number)) => 
+    set((state) => ({ 
+      timer: typeof time === 'function' ? time(state.timer) : time 
+    })),
 
   toggleSeat: (seat: Seat) => {
     const { selectedSeats, totalAmount } = get();
